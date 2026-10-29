@@ -163,6 +163,39 @@ class MobileTelemetryGatewayServer:
                         "client_order_id": msg["client_order_id"],
                     }
                     await self.cmd_push.send(json.dumps(cmd_payload).encode("utf-8"))
+                elif mtype == "SAVE_STOCK":
+                    cmd_payload = {
+                        "action": "SAVE_STOCK",
+                        "ticker": msg["ticker"],
+                        "company_name": msg.get("company_name", msg["ticker"]),
+                        "country_code": msg.get("country_code", "US"),
+                        "shares": float(msg["shares"]),
+                        "avg_buy_price": float(msg["avg_buy_price"]),
+                        "current_price": float(msg.get("current_price", msg["avg_buy_price"])),
+                        "currency": msg.get("currency", "USD"),
+                        "sector": msg.get("sector", "Equities"),
+                    }
+                    await self.cmd_push.send(json.dumps(cmd_payload).encode("utf-8"))
+                elif mtype == "REMOVE_STOCK":
+                    cmd_payload = {
+                        "action": "REMOVE_STOCK",
+                        "ticker": msg["ticker"],
+                    }
+                    await self.cmd_push.send(json.dumps(cmd_payload).encode("utf-8"))
+                elif mtype == "UPDATE_COUNTRY_MACRO":
+                    cmd_payload = {
+                        "action": "UPDATE_COUNTRY_MACRO",
+                        "country_code": msg["country_code"],
+                        "inflation_rate_yoy_pct": msg.get("inflation_rate_yoy_pct"),
+                        "cpi_index_yoy_pct": msg.get("cpi_index_yoy_pct"),
+                        "cpi_mom_pct": msg.get("cpi_mom_pct"),
+                        "central_bank_rate_pct": msg.get("central_bank_rate_pct"),
+                        "corporate_tax_rate_pct": msg.get("corporate_tax_rate_pct"),
+                        "capital_gains_tax_pct": msg.get("capital_gains_tax_pct"),
+                        "source": msg.get("source", "Mobile Operator Override"),
+                        "headline": msg.get("headline", ""),
+                    }
+                    await self.cmd_push.send(json.dumps(cmd_payload).encode("utf-8"))
         except websockets.ConnectionClosed:
             pass
         except Exception as exc:

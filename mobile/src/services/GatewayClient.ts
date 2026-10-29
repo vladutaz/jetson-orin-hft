@@ -223,6 +223,52 @@ export class JetsonGatewayClient {
     });
   }
 
+  public saveInvestedStock(stock: {
+    ticker: string;
+    company_name: string;
+    country_code: string;
+    shares: number;
+    avg_buy_price: number;
+    current_price?: number;
+    currency?: string;
+    sector?: string;
+  }): void {
+    this.sendRaw({
+      type: 'SAVE_STOCK',
+      ...stock,
+      jwt: this.jwtToken,
+      ts_ms: Date.now(),
+    });
+  }
+
+  public removeInvestedStock(ticker: string): void {
+    this.sendRaw({
+      type: 'REMOVE_STOCK',
+      ticker,
+      jwt: this.jwtToken,
+      ts_ms: Date.now(),
+    });
+  }
+
+  public updateCountryMacro(update: {
+    country_code: string;
+    inflation_rate_yoy_pct?: number;
+    cpi_index_yoy_pct?: number;
+    cpi_mom_pct?: number;
+    central_bank_rate_pct?: number;
+    corporate_tax_rate_pct?: number;
+    capital_gains_tax_pct?: number;
+    source?: string;
+    headline?: string;
+  }): void {
+    this.sendRaw({
+      type: 'UPDATE_COUNTRY_MACRO',
+      ...update,
+      jwt: this.jwtToken,
+      ts_ms: Date.now(),
+    });
+  }
+
   private startPingLoop(): void {
     this.stopPingLoop();
     this.pingTimer = setInterval(() => {

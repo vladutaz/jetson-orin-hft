@@ -16,10 +16,12 @@ from edge.bus.schema import (
     ExecutionEvent,
     MarketDepthEvent,
     MobileTelemetryPayload,
+    SentimentEvent,
 )
 from edge.bus.zmq_bus import ZMQMessageBus
 from edge.config import PlatformSettings, load_settings
 from edge.execution.ledger import ExecutionWallLedger
+from edge.execution.portfolio_macro import PortfolioAndMacroMonitor
 from edge.execution.risk import EngineMode, PreTradeRiskGatekeeper
 from edge.execution.router import SmartOrderRouter
 from edge.execution.state_machine import OrderStateMachine
@@ -30,13 +32,14 @@ logger = logging.getLogger("jetson.engine")
 
 class CoreTradingEngineDaemon:
     """
-    Layer 3 & Layer 4 Unified High-Frequency Prediction, Risk & Execution Engine (`jetson-engine.service`).
-    - Runs `PredictionWorker` (TensorRT alpha inference).
-    - Consumes `signals.alpha` and `market.depth.<symbol>`, sizes target positions against
+    Layer 3 & Layer 4 Unified High-Frequency Prediction, Risk, Execution & Portfolio Macro Engine (`jetson-engine.service`).
+    - Runs `PredictionWorker` (TensorRT alpha inference fused with multi-source Seeking Alpha / Trading Guru sentiment).
+    - Consumes `signals.alpha`, `signals.sentiment`, and `market.depth.<symbol>`, sizes target positions against
       instrument limits, and executes passive Maker Post-Only orders via `SmartOrderRouter`.
+    - Runs `PortfolioAndMacroMonitor` to save invested stocks, track their status, monitor CPI/Inflation/Tax
+      changes in each stock's respective country, and dispatch instant notifications to the user's phone.
     - Listens on the urgent ZeroMQ command socket (`cmd.control`) for Biometric Kill-Switch
-      (`EMERGENCY_FLATTEN`) and manual order overrides from the mobile gateway.
-    - Publishes `engine.execution` and `telemetry.mobile` state updates.
+      (`EMERGENCY_FLATTEN`), manual order overrides, and stock/macro management commands.
     """
 
     def __init__(self, settings: PlatformSettings) -> None:
@@ -49,7 +52,7 @@ class CoreTradingEngineDaemon:
         self.cmd_pull = self.bus.create_command_puller(settings.ipc.cmd_router_endpoint, bind=True)
         self.engine_sub = self.bus.create_subscriber(
             settings.ipc.pub_market_endpoint,
-            topics=["market.depth."],
+            topics=["market.depth.", "signals.sentiment"],
             bind=False,
         )
         self.alpha_sub = self.bus.create_subscriber(
@@ -61,6 +64,7 @@ class CoreTradingEngineDaemon:
         self.risk_gate = PreTradeRiskGatekeeper(settings.risk)
         self.state_machine = OrderStateMachine()
         self.ledger = ExecutionWallLedger(settings.execution.ledger_sqlite_path)
+        self.portfolio_monitor = PortfolioAndMacroMonitor(self.ledger)
         self.router = SmartOrderRouter(
             exec_config=settings.execution,
             risk_config=settings.risk,
@@ -72,6 +76,7 @@ class CoreTradingEngineDaemon:
 
         self.latest_signals: Dict[str, Dict[str, Any]] = {}
         self.latest_orderbooks: Dict[str, Dict[str, Any]] = {}
+        self.trusted_news_feed: Deque[Dict[str, Any]] = deque(maxlen=30)
         self.candles_1m: Dict[str, List[Dict[str, Any]]] = {
             sym: [] for sym in settings.ingestion.symbols
         }
@@ -112,10 +117,30 @@ class CoreTradingEngineDaemon:
             c["close"] = px
             c["volume"] += vol
 
-    async def _depth_consumer_loop(self) -> None:
-        async for _, payload in self.bus.iter_messages(self.engine_sub):
+    async def _depth_and_sentiment_consumer_loop(self) -> None:
+        async for topic, payload in self.bus.iter_messages(self.engine_sub):
             if not self._running:
                 break
+            if topic == "signals.sentiment":
+                sent = SentimentEvent.from_bytes(payload)
+                self.trusted_news_feed.appendleft(
+                    {
+                        "source": sent.source,
+                        "headline": sent.headline,
+                        "symbols": sent.symbols,
+                        "sentiment_score": round(sent.sentiment_score, 3),
+                        "confidence": round(sent.confidence, 3),
+                        "ts_ms": sent.emitted_ts_ns // 1_000_000,
+                    }
+                )
+                # Scan headline for saved stock catalysts & country CPI/Inflation/Tax changes
+                self.portfolio_monitor.scan_headline_for_macro_and_stock_catalysts(
+                    headline=sent.headline,
+                    source=sent.source,
+                    sentiment_score=sent.sentiment_score,
+                )
+                continue
+
             depth = MarketDepthEvent.from_bytes(payload)
             self.router.update_book(depth)
             self._update_candlestick(depth)
@@ -208,6 +233,31 @@ class CoreTradingEngineDaemon:
                 elif action == "CANCEL_ORDER":
                     cid = str(cmd["client_order_id"])
                     await self.router.cancel_order(cid, reason="MOBILE_MANUAL_CANCEL")
+                elif action == "SAVE_STOCK":
+                    self.portfolio_monitor.save_invested_stock(
+                        ticker=str(cmd["ticker"]),
+                        company_name=str(cmd.get("company_name", cmd["ticker"])),
+                        country_code=str(cmd.get("country_code", "US")),
+                        shares=float(cmd["shares"]),
+                        avg_buy_price=float(cmd["avg_buy_price"]),
+                        current_price=float(cmd.get("current_price", cmd["avg_buy_price"])),
+                        currency=str(cmd.get("currency", "USD")),
+                        sector=str(cmd.get("sector", "Equities")),
+                    )
+                elif action == "REMOVE_STOCK":
+                    self.portfolio_monitor.remove_invested_stock(str(cmd["ticker"]))
+                elif action == "UPDATE_COUNTRY_MACRO":
+                    self.portfolio_monitor.update_country_macro(
+                        country_code=str(cmd["country_code"]),
+                        inflation_rate_yoy_pct=cmd.get("inflation_rate_yoy_pct"),
+                        cpi_index_yoy_pct=cmd.get("cpi_index_yoy_pct"),
+                        cpi_mom_pct=cmd.get("cpi_mom_pct"),
+                        central_bank_rate_pct=cmd.get("central_bank_rate_pct"),
+                        corporate_tax_rate_pct=cmd.get("corporate_tax_rate_pct"),
+                        capital_gains_tax_pct=cmd.get("capital_gains_tax_pct"),
+                        source=str(cmd.get("source", "Manual / Sovereign Feed Update")),
+                        headline=str(cmd.get("headline", "")),
+                    )
             except asyncio.CancelledError:
                 break
             except Exception as exc:
@@ -260,6 +310,7 @@ class CoreTradingEngineDaemon:
                     }
                     for o in self.state_machine.active_orders()
                 ]
+                pf_snap = self.portfolio_monitor.get_portfolio_snapshot()
                 payload = MobileTelemetryPayload(
                     seq=self._telemetry_seq,
                     ts_ms=int(time.time() * 1000),
@@ -277,6 +328,10 @@ class CoreTradingEngineDaemon:
                     candles=self.candles_1m,
                     active_orders=active_orders_list,
                     recent_fills=self.ledger.get_recent_fills(limit=25),
+                    invested_stocks=pf_snap["invested_stocks"],
+                    country_macro=pf_snap["country_macro"],
+                    notifications=pf_snap["notifications"],
+                    trusted_news_feed=list(self.trusted_news_feed),
                 )
                 await self.bus.publish(self.telemetry_pub, "telemetry.mobile", payload.to_bytes())
             except asyncio.CancelledError:
@@ -295,7 +350,7 @@ class CoreTradingEngineDaemon:
         self._running = True
         tasks = [
             asyncio.create_task(self.prediction_worker.run(), name="trt_prediction_worker"),
-            asyncio.create_task(self._depth_consumer_loop(), name="engine_depth_consumer"),
+            asyncio.create_task(self._depth_and_sentiment_consumer_loop(), name="engine_depth_sentiment_consumer"),
             asyncio.create_task(self._alpha_consumer_loop(), name="engine_alpha_consumer"),
             asyncio.create_task(self._command_consumer_loop(), name="engine_cmd_consumer"),
             asyncio.create_task(self._telemetry_publisher_loop(), name="engine_telemetry_pub"),

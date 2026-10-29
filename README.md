@@ -299,7 +299,11 @@ Schedule the automated recovery script (`deploy/scripts/watchdog_recovery.sh`) v
 3. **ORDERS (`OrdersScreen.tsx`):**
    - **Discretionary Manual Override:** Dispatch manual `SOR POST-ONLY` or `MARKET` Buy/Sell orders directly from your phone.
    - **Active Orders & Fills Log:** View open resting orders (with one-tap Cancel) and historical fills with Ed25519 wire latency (`µs`) and execution slippage (`bps`).
-4. **EMERGENCY KILL-SWITCH (`EmergencyScreen.tsx`):**
+4. **STOCKS & CPI (`PortfolioMacroScreen.tsx` & `edge/execution/portfolio_macro.py`):**
+   - **Save Invested Stocks (`save_invested_stock`):** Save your stock holdings (`Ticker`, `Company Name`, `Shares`, `Avg Buy Price`, `Current Price`, and `Country` such as `US`, `EU`, `UK`, `RO`, `JP`, `CA`) into the persistent SQLite WAL database (`invested_stocks` table).
+   - **Trusted Multi-Source Market News & Guru Catalysts:** Continuously scrapes **Seeking Alpha** (`seekingalpha.com`), **GuruFocus / Trading Guru** (`gurufocus.com`), **TradingView**, **SEC EDGAR**, **US BLS / Federal Reserve**, **Eurostat**, **MarketWatch / Dow Jones**, **CNBC**, and **Investing.com** with source credibility weighting.
+   - **Sovereign Inflation, CPI & Tax Change Notifications:** Automatically monitors each saved stock's home country for changes in **Annual Inflation Rate (%)**, **Consumer Price Index (CPI YoY & MoM %)**, **Central Bank Policy Rate (%)**, **Corporate Income Tax (%)**, and **Capital Gains / Dividend Tax (%)**. Whenever a stock's status changes or its country's CPI, inflation, or tax rate shifts, the Jetson emits a real-time `PortfolioNotification` to your phone's top alert banner and notification log listing all affected holdings.
+5. **EMERGENCY KILL-SWITCH (`EmergencyScreen.tsx`):**
    - **Two-Factor Physical Confirmation:**
      1. Tap **STEP 1: UNLOCK WITH FACEID / BIOMETRICS** to authenticate via `expo-local-authentication`.
      2. Press and hold the red **EMERGENCY FLATTEN** button continuously for **2.0 seconds** (with haptic feedback).

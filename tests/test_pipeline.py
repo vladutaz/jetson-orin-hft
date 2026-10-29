@@ -362,3 +362,83 @@ def test_zmq_ipc_bus_and_prediction_worker_end_to_end() -> None:
         worker.trt_engine.close()
         bus.close_all()
 
+
+def test_saved_stocks_and_country_cpi_inflation_tax_notifications(tmp_path: Path) -> None:
+    from edge.execution.portfolio_macro import PortfolioAndMacroMonitor, PortfolioNotification
+    from edge.ingestion.news_scraper import resolve_trusted_source
+
+    # 1. Verify Seeking Alpha and GuruFocus / Trading Guru trusted source resolution
+    sa_label, sa_weight = resolve_trusted_source("https://seekingalpha.com/market_currents.xml")
+    assert "Seeking Alpha" in sa_label and sa_weight >= 1.2
+    guru_label, guru_weight = resolve_trusted_source("https://www.gurufocus.com/rss.php")
+    assert "Trading Guru" in guru_label and guru_weight >= 1.2
+
+    # 2. Initialize SQLite WAL ledger and PortfolioAndMacroMonitor
+    ledger = ExecutionWallLedger(tmp_path / "portfolio_macro_test.db")
+    received_notifs: list[PortfolioNotification] = []
+    monitor = PortfolioAndMacroMonitor(ledger, on_notification=received_notifs.append)
+
+    try:
+        # 3. Save invested stocks across US, EU, and RO
+        msft = monitor.save_invested_stock(
+            ticker="MSFT",
+            company_name="Microsoft Corporation",
+            country_code="US",
+            shares=25.0,
+            avg_buy_price=400.0,
+            current_price=442.0,
+            currency="USD",
+            sector="Cloud & AI",
+        )
+        assert msft.status == "OUTPERFORMING"
+        assert msft.unrealized_pnl == pytest.approx(1050.0)
+        assert any(n.ticker == "MSFT" and n.category == "STOCK_STATUS" for n in received_notifs)
+
+        tlv = monitor.save_invested_stock(
+            ticker="TLV",
+            company_name="Banca Transilvania",
+            country_code="RO",
+            shares=500.0,
+            avg_buy_price=27.0,
+            current_price=28.5,
+            currency="RON",
+            sector="Financials",
+        )
+        assert tlv.country_code == "RO"
+
+        # 4. Trigger CPI / Inflation Rate change in US via headline scanner
+        notifs_cpi = monitor.scan_headline_for_macro_and_stock_catalysts(
+            headline="United States CPI inflation cools to 2.3% YoY according to BLS release",
+            source="US Bureau of Labor Statistics (CPI/Inflation)",
+            sentiment_score=0.68,
+        )
+        assert len(notifs_cpi) >= 1
+        assert monitor.countries["US"].cpi_index_yoy_pct == pytest.approx(2.3)
+        assert "MSFT" in notifs_cpi[0].affected_tickers
+
+        # 5. Trigger Tax Policy change in Romania (RO) and verify TLV notification
+        notifs_tax = monitor.update_country_macro(
+            country_code="RO",
+            capital_gains_tax_pct=12.0,
+            inflation_rate_yoy_pct=5.1,
+            source="INSSE / Fiscal Policy Bulletin",
+            headline="Romania adjusts dividend and capital gains tax rate to 12.0%; inflation at 5.1%",
+        )
+        assert len(notifs_tax) == 2
+        categories = {n.category for n in notifs_tax}
+        assert "TAX_POLICY_CHANGE" in categories
+        assert "INFLATION_ALERT" in categories
+        for n in notifs_tax:
+            assert "TLV" in n.affected_tickers
+
+        # 6. Verify Seeking Alpha catalyst headline directly updates saved stock status
+        monitor.scan_headline_for_macro_and_stock_catalysts(
+            headline="Seeking Alpha: Microsoft Azure AI revenue beats institutional consensus with record backlog",
+            source="Seeking Alpha Market Currents",
+            sentiment_score=0.85,
+        )
+        assert "Seeking Alpha" in monitor.stocks["MSFT"].last_catalyst_source
+    finally:
+        ledger.close()
+
+

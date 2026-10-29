@@ -7,7 +7,7 @@ const INITIAL_TELEMETRY: MobileTelemetryState = {
   ts_ms: Date.now(),
   engine_state: 'ACTIVE',
   equity_usd: 254820.45,
-  realized_pnl_usd: 4190.20,
+  realized_pnl_usd: 4190.2,
   unrealized_pnl_usd: 630.25,
   daily_drawdown_pct: 0.18,
   daily_sharpe: 3.42,
@@ -108,21 +108,21 @@ const INITIAL_TELEMETRY: MobileTelemetryState = {
         [89979.6, 1.84],
         [89979.2, 3.12],
         [89978.8, 2.45],
-        [89978.0, 5.60],
+        [89978.0, 5.6],
         [89977.5, 4.18],
         [89976.8, 8.92],
-        [89976.0, 6.40],
+        [89976.0, 6.4],
         [89975.2, 11.25],
       ],
       asks: [
         [89980.4, 0.92],
         [89980.9, 1.65],
-        [89981.5, 2.80],
-        [89982.0, 4.10],
+        [89981.5, 2.8],
+        [89982.0, 4.1],
         [89982.8, 3.75],
-        [89983.5, 6.20],
+        [89983.5, 6.2],
         [89984.2, 7.85],
-        [89985.0, 9.50],
+        [89985.0, 9.5],
       ],
       last_trade_px: 89980.4,
       last_trade_qty: 0.42,
@@ -134,7 +134,7 @@ const INITIAL_TELEMETRY: MobileTelemetryState = {
     BTCUSDT: Array.from({ length: 32 }, (_, idx) => {
       const base = 89650 + idx * 10;
       const open = base + ((idx % 3) - 1) * 18;
-      const close = base + ((idx % 2 === 0 ? 1 : -1) * 24);
+      const close = base + (idx % 2 === 0 ? 1 : -1) * 24;
       const high = Math.max(open, close) + 19;
       const low = Math.min(open, close) - 16;
       return {
@@ -203,7 +203,213 @@ const INITIAL_TELEMETRY: MobileTelemetryState = {
       ts_ns: (Date.now() - 42000) * 1_000_000,
     },
   ],
+  invested_stocks: [
+    {
+      ticker: 'NVDA',
+      company_name: 'NVIDIA Corporation',
+      country_code: 'US',
+      shares: 45,
+      avg_buy_price: 118.5,
+      current_price: 138.6,
+      currency: 'USD',
+      sector: 'Semiconductors & AI',
+      status: 'OUTPERFORMING',
+      sentiment_score: 0.78,
+      last_catalyst_headline: 'Seeking Alpha: NVIDIA Blackwell datacenter demand surges ahead of Q4 guidance',
+      last_catalyst_source: 'Seeking Alpha Market Currents',
+      cost_basis: 5332.5,
+      market_value: 6237.0,
+      unrealized_pnl: 904.5,
+      unrealized_pnl_pct: 16.96,
+      updated_ts_ms: Date.now(),
+    },
+    {
+      ticker: 'AAPL',
+      company_name: 'Apple Inc.',
+      country_code: 'US',
+      shares: 60,
+      avg_buy_price: 212.0,
+      current_price: 231.4,
+      currency: 'USD',
+      sector: 'Consumer Technology',
+      status: 'OUTPERFORMING',
+      sentiment_score: 0.52,
+      last_catalyst_headline: 'GuruFocus / Trading Guru: Institutional buyback pace and services margin expansion',
+      last_catalyst_source: 'GuruFocus / Trading Guru',
+      cost_basis: 12720.0,
+      market_value: 13884.0,
+      unrealized_pnl: 1164.0,
+      unrealized_pnl_pct: 9.15,
+      updated_ts_ms: Date.now(),
+    },
+    {
+      ticker: 'ASML',
+      company_name: 'ASML Holding N.V.',
+      country_code: 'EU',
+      shares: 12,
+      avg_buy_price: 720.0,
+      current_price: 695.5,
+      currency: 'EUR',
+      sector: 'Semiconductor Lithography',
+      status: 'WATCH',
+      sentiment_score: 0.14,
+      last_catalyst_headline: 'Eurostat CPI cools to 2.0% YoY supporting European tech valuation multiples',
+      last_catalyst_source: 'Eurostat Eurozone CPI & Macro',
+      cost_basis: 8640.0,
+      market_value: 8346.0,
+      unrealized_pnl: -294.0,
+      unrealized_pnl_pct: -3.4,
+      updated_ts_ms: Date.now(),
+    },
+  ],
+  country_macro: {
+    US: {
+      country_code: 'US',
+      country_name: 'United States',
+      currency: 'USD',
+      inflation_rate_yoy_pct: 2.6,
+      cpi_index_yoy_pct: 2.6,
+      cpi_mom_pct: 0.2,
+      central_bank_rate_pct: 4.75,
+      corporate_tax_rate_pct: 21.0,
+      capital_gains_tax_pct: 20.0,
+      last_updated_source: 'US Bureau of Labor Statistics (BLS) / Federal Reserve',
+      updated_ts_ms: Date.now(),
+    },
+    EU: {
+      country_code: 'EU',
+      country_name: 'Eurozone (ECB)',
+      currency: 'EUR',
+      inflation_rate_yoy_pct: 2.0,
+      cpi_index_yoy_pct: 2.0,
+      cpi_mom_pct: 0.1,
+      central_bank_rate_pct: 3.25,
+      corporate_tax_rate_pct: 25.0,
+      capital_gains_tax_pct: 26.0,
+      last_updated_source: 'Eurostat / European Central Bank',
+      updated_ts_ms: Date.now(),
+    },
+    UK: {
+      country_code: 'UK',
+      country_name: 'United Kingdom',
+      currency: 'GBP',
+      inflation_rate_yoy_pct: 2.3,
+      cpi_index_yoy_pct: 2.3,
+      cpi_mom_pct: 0.3,
+      central_bank_rate_pct: 4.75,
+      corporate_tax_rate_pct: 25.0,
+      capital_gains_tax_pct: 24.0,
+      last_updated_source: 'UK Office for National Statistics (ONS)',
+      updated_ts_ms: Date.now(),
+    },
+    RO: {
+      country_code: 'RO',
+      country_name: 'Romania',
+      currency: 'RON',
+      inflation_rate_yoy_pct: 4.7,
+      cpi_index_yoy_pct: 4.7,
+      cpi_mom_pct: 0.4,
+      central_bank_rate_pct: 6.5,
+      corporate_tax_rate_pct: 16.0,
+      capital_gains_tax_pct: 10.0,
+      last_updated_source: 'INSSE / National Bank of Romania (BNR)',
+      updated_ts_ms: Date.now(),
+    },
+  },
+  notifications: [
+    {
+      notification_id: 'ntf-cpi-us-01',
+      category: 'CPI_RELEASE',
+      severity: 'BULLISH_CATALYST',
+      ticker: 'NVDA,AAPL',
+      country_code: 'US',
+      title: '[US] CPI Index (YoY) decreased from 2.90% to 2.60%',
+      message:
+        'United States (US) CPI Index (YoY) decreased by -0.30% (from 2.90% to 2.60%) via US Bureau of Labor Statistics (BLS). Affected invested stocks in your portfolio: [NVDA, AAPL].',
+      source: 'US Bureau of Labor Statistics (CPI/Inflation)',
+      metric_name: 'CPI_INDEX_YOY_PCT',
+      previous_value: 2.9,
+      new_value: 2.6,
+      affected_tickers: ['NVDA', 'AAPL'],
+      ts_ms: Date.now() - 120000,
+      acknowledged: false,
+    },
+    {
+      notification_id: 'ntf-guru-nvda-02',
+      category: 'GURU_CATALYST',
+      severity: 'BULLISH_CATALYST',
+      ticker: 'NVDA',
+      country_code: 'US',
+      title: 'NVDA Status Update: OUTPERFORMING (+16.96%)',
+      message:
+        'NVIDIA Corporation (NVDA) is now at 138.60 USD (PnL: +904.50 USD / +16.96%). Catalyst [Seeking Alpha Market Currents]: NVIDIA Blackwell datacenter demand surges ahead of Q4 guidance.',
+      source: 'Seeking Alpha Market Currents',
+      metric_name: 'UNREALIZED_PNL_PCT',
+      previous_value: 12.4,
+      new_value: 16.96,
+      affected_tickers: ['NVDA'],
+      ts_ms: Date.now() - 300000,
+      acknowledged: false,
+    },
+  ],
+  trusted_news_feed: [
+    {
+      source: 'Seeking Alpha Market Currents',
+      headline: 'NVIDIA Blackwell datacenter demand surges ahead of Q4 institutional guidance; hyperscaler CapEx raised',
+      symbols: ['NVDA', 'BTCUSDT'],
+      sentiment_score: 0.82,
+      confidence: 0.91,
+      ts_ms: Date.now() - 45000,
+    },
+    {
+      source: 'GuruFocus / Trading Guru',
+      headline: 'Top quantitative gurus increase allocation to semiconductor & AI infrastructure leaders',
+      symbols: ['NVDA', 'AAPL', 'ASML'],
+      sentiment_score: 0.68,
+      confidence: 0.85,
+      ts_ms: Date.now() - 95000,
+    },
+    {
+      source: 'US Bureau of Labor Statistics (CPI/Inflation)',
+      headline: 'US Consumer Price Index (CPI) cools to 2.6% YoY; Core inflation steady at 0.2% MoM',
+      symbols: ['BTCUSDT', 'ETHUSDT', 'NVDA', 'AAPL'],
+      sentiment_score: 0.64,
+      confidence: 0.94,
+      ts_ms: Date.now() - 180000,
+    },
+    {
+      source: 'SEC EDGAR Regulatory Filings',
+      headline: 'Form 13F-HR Institutional Holdings Update: Spot Bitcoin ETF & AI equity inflows reach quarterly high',
+      symbols: ['BTCUSDT', 'NVDA'],
+      sentiment_score: 0.75,
+      confidence: 0.89,
+      ts_ms: Date.now() - 240000,
+    },
+  ],
 };
+
+interface SaveStockInput {
+  ticker: string;
+  company_name: string;
+  country_code: string;
+  shares: number;
+  avg_buy_price: number;
+  current_price?: number;
+  currency?: string;
+  sector?: string;
+}
+
+interface UpdateCountryMacroInput {
+  country_code: string;
+  inflation_rate_yoy_pct?: number;
+  cpi_index_yoy_pct?: number;
+  cpi_mom_pct?: number;
+  central_bank_rate_pct?: number;
+  corporate_tax_rate_pct?: number;
+  capital_gains_tax_pct?: number;
+  source?: string;
+  headline?: string;
+}
 
 interface TradingContextValue {
   telemetry: MobileTelemetryState;
@@ -220,6 +426,9 @@ interface TradingContextValue {
     orderType: 'LIMIT_POST_ONLY' | 'MARKET'
   ) => void;
   cancelOrder: (clientOrderId: string) => void;
+  saveInvestedStock: (input: SaveStockInput) => void;
+  removeInvestedStock: (ticker: string) => void;
+  updateCountryMacro: (input: UpdateCountryMacroInput) => void;
 }
 
 const TradingContext = createContext<TradingContextValue | undefined>(undefined);
@@ -310,6 +519,160 @@ export const TradingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         ...prev,
         active_orders: prev.active_orders.filter((o) => o.client_order_id !== clientOrderId),
       }));
+    },
+    saveInvestedStock: (input: SaveStockInput) => {
+      client.saveInvestedStock(input);
+      const ticker = input.ticker.trim().toUpperCase();
+      const countryCode = input.country_code.trim().toUpperCase() || 'US';
+      const curPx = input.current_price ?? input.avg_buy_price;
+      const costBasis = input.shares * input.avg_buy_price;
+      const mktVal = input.shares * curPx;
+      const pnl = mktVal - costBasis;
+      const pnlPct = input.avg_buy_price > 0 ? ((curPx - input.avg_buy_price) / input.avg_buy_price) * 100 : 0;
+      const status =
+        pnlPct >= 8 ? 'OUTPERFORMING' : pnlPct <= -8 ? 'DRAWDOWN_ALERT' : 'STABLE';
+
+      const newStock = {
+        ticker,
+        company_name: input.company_name.trim() || ticker,
+        country_code: countryCode,
+        shares: input.shares,
+        avg_buy_price: input.avg_buy_price,
+        current_price: curPx,
+        currency: input.currency || 'USD',
+        sector: input.sector || 'Equities',
+        status,
+        sentiment_score: 0.35,
+        last_catalyst_headline: 'Position saved and actively monitored across Seeking Alpha, GuruFocus & Country Macro feeds.',
+        last_catalyst_source: 'Portfolio Monitor',
+        cost_basis: costBasis,
+        market_value: mktVal,
+        unrealized_pnl: pnl,
+        unrealized_pnl_pct: pnlPct,
+        updated_ts_ms: Date.now(),
+      };
+
+      const newNotif = {
+        notification_id: `ntf-${Date.now()}`,
+        category: 'STOCK_STATUS',
+        severity: 'INFO',
+        ticker,
+        country_code: countryCode,
+        title: `Saved ${ticker} (${newStock.company_name}) — Status: ${status}`,
+        message: `Tracking ${input.shares} shares of ${ticker} in ${countryCode}. Live alerts enabled for ${countryCode} Inflation, CPI, and Tax changes.`,
+        source: 'Portfolio Monitor',
+        metric_name: 'UNREALIZED_PNL_PCT',
+        previous_value: 0,
+        new_value: Number(pnlPct.toFixed(2)),
+        affected_tickers: [ticker],
+        ts_ms: Date.now(),
+        acknowledged: false,
+      };
+
+      setTelemetry((prev) => ({
+        ...prev,
+        invested_stocks: [
+          newStock,
+          ...prev.invested_stocks.filter((s) => s.ticker !== ticker),
+        ],
+        notifications: [newNotif, ...prev.notifications],
+      }));
+    },
+    removeInvestedStock: (ticker: string) => {
+      client.removeInvestedStock(ticker);
+      setTelemetry((prev) => ({
+        ...prev,
+        invested_stocks: prev.invested_stocks.filter((s) => s.ticker !== ticker),
+      }));
+    },
+    updateCountryMacro: (input: UpdateCountryMacroInput) => {
+      client.updateCountryMacro(input);
+      const code = input.country_code.trim().toUpperCase();
+      setTelemetry((prev) => {
+        const existing = prev.country_macro[code] || {
+          country_code: code,
+          country_name: code,
+          currency: 'USD',
+          inflation_rate_yoy_pct: 2.5,
+          cpi_index_yoy_pct: 2.5,
+          cpi_mom_pct: 0.2,
+          central_bank_rate_pct: 4.0,
+          corporate_tax_rate_pct: 21.0,
+          capital_gains_tax_pct: 20.0,
+          last_updated_source: 'Sovereign Macro Feed',
+          updated_ts_ms: Date.now(),
+        };
+
+        const oldInf = existing.inflation_rate_yoy_pct;
+        const newInf = input.inflation_rate_yoy_pct ?? oldInf;
+        const oldCpi = existing.cpi_index_yoy_pct;
+        const newCpi = input.cpi_index_yoy_pct ?? oldCpi;
+        const oldTax = existing.capital_gains_tax_pct;
+        const newTax = input.capital_gains_tax_pct ?? oldTax;
+
+        const updatedMacro = {
+          ...existing,
+          inflation_rate_yoy_pct: newInf,
+          cpi_index_yoy_pct: newCpi,
+          cpi_mom_pct: input.cpi_mom_pct ?? existing.cpi_mom_pct,
+          central_bank_rate_pct: input.central_bank_rate_pct ?? existing.central_bank_rate_pct,
+          corporate_tax_rate_pct: input.corporate_tax_rate_pct ?? existing.corporate_tax_rate_pct,
+          capital_gains_tax_pct: newTax,
+          last_updated_source: input.source || 'Sovereign Macro / Tax Feed',
+          updated_ts_ms: Date.now(),
+        };
+
+        const affected = prev.invested_stocks
+          .filter((s) => s.country_code === code)
+          .map((s) => s.ticker);
+
+        const newNotifs = [...prev.notifications];
+        if (Math.abs(newInf - oldInf) > 1e-4 || Math.abs(newCpi - oldCpi) > 1e-4) {
+          newNotifs.unshift({
+            notification_id: `ntf-macro-${Date.now()}`,
+            category: 'INFLATION_ALERT',
+            severity: newInf > oldInf ? 'WARNING' : 'BULLISH_CATALYST',
+            ticker: affected.join(',') || code,
+            country_code: code,
+            title: `[${code}] Inflation / CPI Updated: ${oldInf.toFixed(2)}% -> ${newInf.toFixed(2)}%`,
+            message: `${updatedMacro.country_name} (${code}) Inflation/CPI shifted from ${oldInf.toFixed(2)}% to ${newInf.toFixed(2)}%. Affected invested stocks: [${affected.join(', ') || 'None'}].`,
+            source: updatedMacro.last_updated_source,
+            metric_name: 'INFLATION_RATE_YOY_PCT',
+            previous_value: oldInf,
+            new_value: newInf,
+            affected_tickers: affected,
+            ts_ms: Date.now(),
+            acknowledged: false,
+          });
+        }
+        if (Math.abs(newTax - oldTax) > 1e-4) {
+          newNotifs.unshift({
+            notification_id: `ntf-tax-${Date.now() + 1}`,
+            category: 'TAX_POLICY_CHANGE',
+            severity: newTax > oldTax ? 'CRITICAL' : 'BULLISH_CATALYST',
+            ticker: affected.join(',') || code,
+            country_code: code,
+            title: `[${code}] Capital Gains Tax Changed: ${oldTax.toFixed(1)}% -> ${newTax.toFixed(1)}%`,
+            message: `${updatedMacro.country_name} (${code}) Capital Gains Tax changed from ${oldTax.toFixed(1)}% to ${newTax.toFixed(1)}%. Affected invested stocks: [${affected.join(', ') || 'None'}].`,
+            source: updatedMacro.last_updated_source,
+            metric_name: 'CAPITAL_GAINS_TAX_PCT',
+            previous_value: oldTax,
+            new_value: newTax,
+            affected_tickers: affected,
+            ts_ms: Date.now(),
+            acknowledged: false,
+          });
+        }
+
+        return {
+          ...prev,
+          country_macro: {
+            ...prev.country_macro,
+            [code]: updatedMacro,
+          },
+          notifications: newNotifs,
+        };
+      });
     },
   };
 

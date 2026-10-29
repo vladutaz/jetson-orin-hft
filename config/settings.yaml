@@ -41,8 +41,18 @@ ingestion:
     rate_limit_capacity: 30.0
     rate_limit_refill_per_sec: 5.0
     feeds:
+      - "https://seekingalpha.com/market_currents.xml"
+      - "https://seekingalpha.com/feed.xml"
+      - "https://www.gurufocus.com/rss.php"
+      - "https://www.tradingview.com/feed/"
       - "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&output=atom"
       - "https://feeds.content.dowjones.io/public/rss/mw_realtimeheadlines"
+      - "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664"
+      - "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=20910258"
+      - "https://finance.yahoo.com/news/rssindex"
+      - "https://www.investing.com/rss/news_14.rss"
+      - "https://www.bls.gov/feed/cpi.rss"
+      - "https://www.federalreserve.gov/feeds/press_all.xml"
     proxies: []
 
 prediction:

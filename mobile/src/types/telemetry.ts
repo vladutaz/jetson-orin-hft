@@ -86,6 +86,66 @@ export interface FillRecordItem {
   ts_ns: number;
 }
 
+export interface InvestedStockItem {
+  ticker: string;
+  company_name: string;
+  country_code: string;
+  shares: number;
+  avg_buy_price: number;
+  current_price: number;
+  currency: string;
+  sector: string;
+  status: string;
+  sentiment_score: number;
+  last_catalyst_headline: string;
+  last_catalyst_source: string;
+  cost_basis: number;
+  market_value: number;
+  unrealized_pnl: number;
+  unrealized_pnl_pct: number;
+  updated_ts_ms: number;
+}
+
+export interface CountryMacroItem {
+  country_code: string;
+  country_name: string;
+  currency: string;
+  inflation_rate_yoy_pct: number;
+  cpi_index_yoy_pct: number;
+  cpi_mom_pct: number;
+  central_bank_rate_pct: number;
+  corporate_tax_rate_pct: number;
+  capital_gains_tax_pct: number;
+  last_updated_source: string;
+  updated_ts_ms: number;
+}
+
+export interface PortfolioNotificationItem {
+  notification_id: string;
+  category: 'STOCK_STATUS' | 'INFLATION_ALERT' | 'CPI_RELEASE' | 'TAX_POLICY_CHANGE' | 'GURU_CATALYST' | string;
+  severity: 'INFO' | 'WARNING' | 'CRITICAL' | 'BULLISH_CATALYST' | string;
+  ticker: string;
+  country_code: string;
+  title: string;
+  message: string;
+  source: string;
+  metric_name: string;
+  previous_value: number;
+  new_value: number;
+  affected_tickers: string[];
+  ts_ms: number;
+  acknowledged: boolean;
+}
+
+export interface TrustedNewsItem {
+  source: string;
+  headline: string;
+  symbols: string[];
+  sentiment_score: number;
+  confidence: number;
+  ts_ms: number;
+}
+
 export interface MobileTelemetryState {
   seq: number;
   ts_ms: number;
@@ -104,4 +164,8 @@ export interface MobileTelemetryState {
   candles: Record<string, CandleBar[]>;
   active_orders: ActiveOrderItem[];
   recent_fills: FillRecordItem[];
+  invested_stocks: InvestedStockItem[];
+  country_macro: Record<string, CountryMacroItem>;
+  notifications: PortfolioNotificationItem[];
+  trusted_news_feed: TrustedNewsItem[];
 }

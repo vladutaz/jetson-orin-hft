@@ -255,6 +255,10 @@ class MobileTelemetryPayload:
     candles: Dict[str, Any] = field(default_factory=dict)
     active_orders: List[Dict[str, Any]] = field(default_factory=list)
     recent_fills: List[Dict[str, Any]] = field(default_factory=list)
+    invested_stocks: List[Dict[str, Any]] = field(default_factory=list)
+    country_macro: Dict[str, Any] = field(default_factory=dict)
+    notifications: List[Dict[str, Any]] = field(default_factory=list)
+    trusted_news_feed: List[Dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
