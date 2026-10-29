@@ -1,0 +1,63 @@
+# Python & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Pytest & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Secrets, Certificates & Runtime Data
+config/secrets.env
+config/certs/*.key
+config/certs/*.crt
+config/certs/*.pem
+data/*.db
+data/*.db-shm
+data/*.db-wal
+*.engine
+*.ipc
+
+# React Native / Expo / Node
+mobile/node_modules/
+mobile/.expo/
+mobile/.expo-shared/
+mobile/dist/
+mobile/web-build/
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

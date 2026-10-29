@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Jetson Orin HFT Terminal",
+    "slug": "jetson-orin-hft-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#070A0F",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "io.jetsonquant.hftterminal",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Biometric verification is required to arm and trigger the Emergency Trading Kill-Switch."
+      }
+    },
+    "android": {
+      "package": "io.jetsonquant.hftterminal",
+      "permissions": [
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT",
+        "VIBRATE"
+      ]
+    }
+  }
+}

@@ -1,0 +1,102 @@
+system:
+  node_id: "jetson-orin-agx-01"
+  environment: "production"
+  watchdog_device: "/dev/watchdog"
+  watchdog_interval_sec: 5
+  cpu_cores_ingest: [0, 1, 2, 3]
+  cpu_cores_engine: [4, 5, 6, 7]
+  cpu_cores_bridge: [8, 9]
+
+ipc:
+  # ZeroMQ endpoints (automatically falls back to tcp://127.0.0.1 on non-POSIX test hosts)
+  pub_market_endpoint: "ipc:///tmp/jetson_market.ipc"
+  pub_signals_endpoint: "ipc:///tmp/jetson_signals.ipc"
+  pub_execution_endpoint: "ipc:///tmp/jetson_execution.ipc"
+  pub_telemetry_endpoint: "ipc:///tmp/jetson_telemetry.ipc"
+  cmd_router_endpoint: "ipc:///tmp/jetson_cmd_router.ipc"
+  shm_segment_name: "/jetson_l2_ring"
+  shm_slot_count: 1024
+
+ingestion:
+  symbols:
+    - "BTCUSDT"
+    - "ETHUSDT"
+    - "SOLUSDT"
+  exchanges:
+    binance_futures:
+      enabled: true
+      ws_url: "wss://fstream.binance.com/stream"
+      rest_snapshot_url: "https://fapi.binance.com/fapi/v1/depth"
+      depth_levels: 50
+    bybit_linear:
+      enabled: true
+      ws_url: "wss://stream.bybit.com/v5/public/linear"
+      depth_levels: 50
+    coinbase_advanced:
+      enabled: true
+      ws_url: "wss://advanced-trade-ws.coinbase.com"
+      product_ids: ["BTC-USD", "ETH-USD", "SOL-USD"]
+  news_scraper:
+    poll_interval_sec: 2.0
+    rate_limit_capacity: 30.0
+    rate_limit_refill_per_sec: 5.0
+    feeds:
+      - "https://www.sec.gov/cgi-bin/browse-edgar?action=getcurrent&output=atom"
+      - "https://feeds.content.dowjones.io/public/rss/mw_realtimeheadlines"
+    proxies: []
+
+prediction:
+  feature_window_ticks: 256
+  vpin_bucket_volume: 50.0
+  vpin_num_buckets: 50
+  vwap_horizons_sec: [1.0, 5.0, 30.0, 300.0]
+  trt_alpha_engine_path: "/opt/jetson-hft/models/alpha_tft_fp16.engine"
+  trt_sentiment_engine_path: "/opt/jetson-hft/models/finbert_int8.engine"
+  precision: "FP16"
+  dla_core: -1  # -1 uses Orin GPU Tensor Cores; 0 or 1 uses NVDLA
+
+risk:
+  initial_equity_usd: 250000.0
+  max_daily_drawdown_pct: 0.03        # 3.0% hard circuit breaker
+  max_stale_book_ms: 150.0            # 150ms stale feed rejection
+  max_fat_finger_bps: 75.0            # 75 bps max distance from mid-price
+  max_slippage_bps: 15.0              # 15 bps max expected slippage
+  min_signal_confidence: 0.58
+  instrument_limits:
+    BTCUSDT:
+      max_order_notional_usd: 50000.0
+      max_position_notional_usd: 150000.0
+      tick_size: 0.10
+      lot_size: 0.001
+    ETHUSDT:
+      max_order_notional_usd: 350000.0
+      max_position_notional_usd: 100000.0
+      tick_size: 0.01
+      lot_size: 0.01
+    SOLUSDT:
+      max_order_notional_usd: 25000.0
+      max_position_notional_usd: 75000.0
+      tick_size: 0.01
+      lot_size: 0.1
+
+execution:
+  exchange: "binance_futures"
+  rest_base_url: "https://fapi.binance.com"
+  ws_api_url: "wss://ws-fapi.binance.com/ws-fapi/v1"
+  api_key_env: "JETSON_EXCHANGE_API_KEY"
+  ed25519_privkey_env: "JETSON_ED25519_PRIVATE_KEY_PEM"
+  sor_maker_chase_interval_ms: 40
+  sor_max_chase_attempts: 6
+  ledger_sqlite_path: "data/jetson_execution_ledger.db"
+  paper_trading: false
+
+gateway:
+  bind_host: "0.0.0.0"
+  bind_port: 8443
+  tls_cert_path: "config/certs/server.crt"
+  tls_key_path: "config/certs/server.key"
+  mtls_ca_path: "config/certs/client_ca.crt"
+  relay_outbound_url: ""
+  broadcast_hz: 10.0
+  jwt_ttl_seconds: 900
+  authorized_mobile_pubkeys: {}
